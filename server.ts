@@ -79,7 +79,7 @@ app.get('/api/clips/trending', async (c) => {
   const result = await mppx.session({
     amount: '0.01',
     unitType: 'request',
-    suggestedDeposit: '0.50',
+    suggestedDeposit: '1.00',
   })(c.req.raw)
 
   if (result.status === 402) return result.challenge
@@ -102,7 +102,7 @@ app.get('/api/clips/search', async (c) => {
   const result = await mppx.session({
     amount: '0.01',
     unitType: 'request',
-    suggestedDeposit: '0.50',
+    suggestedDeposit: '1.00',
   })(c.req.raw)
 
   if (result.status === 402) return result.challenge
@@ -126,7 +126,7 @@ app.get('/api/clips/:id', async (c) => {
   const result = await mppx.session({
     amount: '0.02',
     unitType: 'clip',
-    suggestedDeposit: '0.50',
+    suggestedDeposit: '1.00',
   })(c.req.raw)
 
   if (result.status === 402) return result.challenge
