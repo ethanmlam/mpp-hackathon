@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
+import { serveStatic } from '@hono/node-server/serve-static'
 import { Mppx, tempo } from 'mppx/server'
 import { isAddress } from 'viem'
 import { getClips, getClipById, searchClips, type Clip } from './clips.js'
@@ -152,8 +153,15 @@ app.get('/api/clips/:id', async (c) => {
   )
 })
 
+// Serve static files from public/
+app.use('/public/*', serveStatic({ root: './' }))
+
+// Redirect /app to the frontend
+app.get('/app', (c) => c.redirect('/public/app.html'))
+
 console.log(`Clip Service running on http://localhost:${PORT}`)
 console.log(`Recipient wallet: ${RECIPIENT}`)
 console.log(`\nTest with: tempo request http://localhost:${PORT}/api/clips/trending`)
+console.log(`Frontend: http://localhost:${PORT}/app`)
 
 serve({ fetch: app.fetch, port: PORT })
