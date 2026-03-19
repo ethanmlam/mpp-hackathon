@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClipDrop - Pay-per-clip highlights</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0e0e10;
+            color: #efeff1;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        header {
+            background: #18181b;
+            border-bottom: 1px solid #2f2f35;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: #bf94ff;
+        }
+        .logo span { color: #efeff1; }
+        .wallet-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+        }
+        .balance {
+            background: #2f2f35;
+            padding: 6px 12px;
+            border-radius: 6px;
+            color: #00ff88;
+            font-weight: 600;
+            font-family: monospace;
+        }
+        .session-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff4444;
+        }
+        .status-dot.active { background: #00ff88; }
+        
+        /* Main layout */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        /* Search */
+        .search-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        .search-bar input {
+            flex: 1;
+            background: #2f2f35;
+            border: 1px solid #464649;
+            color: #efeff1;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+        .search-bar input:focus { border-color: #bf94ff; }
+        .search-bar input::placeholder { color: #adadb8; }
+        .search-bar button {
+            background: #bf94ff;
+            color: #0e0e10;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .search-bar button:hover { background: #a970ff; }
+        
+        /* Channel filters */
+        .filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            background: #2f2f35;
+            border: 1px solid #464649;
+            color: #adadb8;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            background: #bf94ff;
+            color: #0e0e10;
+            border-color: #bf94ff;
+        }
+        
+        /* Clip grid */
+        .clip-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+        .clip-card {
+            background: #18181b;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            border: 1px solid transparent;
+        }
+        .clip-card:hover {
+            transform: translateY(-2px);
+            border-color: #bf94ff;
+            box-shadow: 0 4px 20px rgba(191, 148, 255, 0.15);
+        }
+        .clip-thumb {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            background: #2f2f35;
+            display: block;
+        }
+        .clip-info {
+            padding: 12px;
+        }
+        .clip-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        .clip-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #adadb8;
+        }
+        .clip-channel {
+            color: #bf94ff;
+            font-weight: 600;
+        }
+        .clip-views { color: #adadb8; }
+        .clip-game {
+            background: #2f2f35;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-top: 6px;
+            display: inline-block;
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: #18181b;
+            border-radius: 12px;
+            max-width: 700px;
+            width: 90%;
+            overflow: hidden;
+            border: 1px solid #2f2f35;
+        }
+        .modal-video {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-video img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .modal-body { padding: 20px; }
+        .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+        .modal-details {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
+            color: #adadb8;
+            margin-bottom: 16px;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .modal-actions button {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .btn-primary { background: #bf94ff; color: #0e0e10; }
+        .btn-secondary { background: #2f2f35; color: #efeff1; }
+        .btn-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(0,0,0,0.6);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .modal-overlay { position: fixed; }
+        
+        /* Payment toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #18181b;
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 13px;
+            z-index: 200;
+            display: none;
+            animation: slideUp 0.3s ease;
+        }
+        .toast.show { display: block; }
+        .toast-amount { color: #00ff88; font-weight: 700; font-family: monospace; }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Stats bar */
+        .stats-bar {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            background: #18181b;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+        .stat-item { display: flex; gap: 6px; }
+        .stat-label { color: #adadb8; }
+        .stat-value { color: #efeff1; font-weight: 600; }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #adadb8;
+        }
+        
+        /* Connect button */
+        .connect-btn {
+            background: #bf94ff;
+            color: #0e0e10;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Clip<span>Drop</span></div>
+        <div class="wallet-info">
+            <div class="session-status">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="sessionLabel">No session</span>
+            </div>
+            <div class="balance" id="balanceDisplay">$0.00 spent</div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search clips by game, channel, or keyword..." />
+            <button onclick="searchClips()">Search</button>
+        </div>
+        
+        <div class="filters" id="filters">
+            <button class="filter-btn active" onclick="filterChannel(null, this)">All</button>
+        </div>
+        
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-label">Clips loaded:</span>
+                <span class="stat-value" id="clipsLoaded">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Session payments:</span>
+                <span class="stat-value" id="paymentCount">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Total cost:</span>
+                <span class="stat-value" id="totalCost">$0.00</span>
+            </div>
+        </div>
+        
+        <div class="clip-grid" id="clipGrid">
+            <div class="loading">Loading clips...</div>
+        </div>
+    </div>
+    
+    <!-- Clip detail modal -->
+    <div class="modal-overlay" id="modal" onclick="closeModal(event)">
+        <div class="modal">
+            <div class="modal-video">
+                <img id="modalThumb" src="" alt="" />
+            </div>
+            <div class="modal-body">
+                <div class="modal-title" id="modalTitle"></div>
+                <div class="modal-details">
+                    <span>Channel: <strong id="modalChannel"></strong></span>
+                    <span>Game: <strong id="modalGame"></strong></span>
+                    <span>Views: <strong id="modalViews"></strong></span>
+                    <span>Duration: <strong id="modalDuration"></strong></span>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-primary" id="modalEmbed">Copy Embed URL</button>
+                    <button class="btn-secondary" onclick="closeModal()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Payment toast -->
+    <div class="toast" id="toast">
+        <span>Session payment: <span class="toast-amount" id="toastAmount">$0.01</span></span>
+    </div>
+    
+    <script>
+        const API_BASE = window.location.origin;
+        let totalSpent = 0;
+        let paymentCount = 0;
+        let sessionActive = false;
+        
+        function showToast(amount) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastAmount').textContent = amount;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+        
+        function trackPayment(amount) {
+            totalSpent += parseFloat(amount.replace('$', ''));
+            paymentCount++;
+            document.getElementById('totalCost').textContent = '$' + totalSpent.toFixed(2);
+            document.getElementById('paymentCount').textContent = paymentCount;
+            document.getElementById('balanceDisplay').textContent = '$' + totalSpent.toFixed(2) + ' spent';
+            showToast(amount);
+            
+            if (!sessionActive) {
+                sessionActive = true;
+                document.getElementById('statusDot').classList.add('active');
+                document.getElementById('sessionLabel').textContent = 'Session active';
+            }
+        }
+        
+        function formatViews(n) {
+            if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+            if (n >= 1_000) return (n / 1_000).toFixed(0) + 'K';
+            return n.toString();
+        }
+        
+        function renderClips(clips) {
+            const grid = document.getElementById('clipGrid');
+            document.getElementById('clipsLoaded').textContent = clips.length;
+            
+            if (clips.length === 0) {
+                grid.innerHTML = '<div class="loading">No clips found</div>';
+                return;
+            }
+            
+            grid.innerHTML = clips.map(clip => `
+                <div class="clip-card" onclick="openClip('${clip.id}')">
+                    <img class="clip-thumb" src="${clip.thumbnail_url}" alt="${clip.title}" loading="lazy" />
+                    <div class="clip-info">
+                        <div class="clip-title">${clip.title}</div>
+                        <div class="clip-meta">
+                            <span class="clip-channel">${clip.channel}</span>
+                            <span class="clip-views">${formatViews(clip.view_count)} views</span>
+                        </div>
+                        <span class="clip-game">${clip.game}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function loadTrending(channel) {
+            const grid = document.getElementById('clipGrid');
+            grid.innerHTML = '<div class="loading">Loading...</div>';
+            
+            let url = API_BASE + '/api/clips/trending?limit=12';
+            if (channel) url += '&channel=' + encodeURIComponent(channel);
+            
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                trackPayment('$0.01');
+                renderClips(data.clips);
+            } catch (err) {
+                // If 402, we need MPP -- for demo, show clips without payment
+                grid.innerHTML = '<div class="loading">Payment required. Connect your Tempo wallet.</div>';
+            }
+        }
+        
+        async function searchClips() {
+            const q = document.getElementById('searchInput').value;
+            if (!q) return loadTrending();
+            
+            const grid = document.getElementById('clipGrid');
+            grid.innerHTML = '<div class="loading">Searching...</div>';
+            
+            try {
+                const res = await fetch(API_BASE + '/api/clips/search?q=' + encodeURIComponent(q));
+                const data = await res.json();
+                trackPayment('$0.01');
+                renderClips(data.clips);
+            } catch (err) {
+                grid.innerHTML = '<div class="loading">Search failed</div>';
+            }
+        }
+        
+        async function openClip(id) {
+            try {
+                const res = await fetch(API_BASE + '/api/clips/' + id);
+                const data = await res.json();
+                trackPayment('$0.02');
+                
+                const clip = data.clip;
+                document.getElementById('modalThumb').src = clip.thumbnail_url;
+                document.getElementById('modalTitle').textContent = clip.title;
+                document.getElementById('modalChannel').textContent = clip.channel;
+                document.getElementById('modalGame').textContent = clip.game;
+                document.getElementById('modalViews').textContent = formatViews(clip.view_count);
+                document.getElementById('modalDuration').textContent = clip.duration + 's';
+                document.getElementById('modalEmbed').onclick = () => {
+                    navigator.clipboard.writeText(clip.embed_url);
+                    document.getElementById('modalEmbed').textContent = 'Copied!';
+                    setTimeout(() => document.getElementById('modalEmbed').textContent = 'Copy Embed URL', 1500);
+                };
+                
+                document.getElementById('modal').classList.add('open');
+            } catch (err) {
+                console.error('Failed to load clip', err);
+            }
+        }
+        
+        function closeModal(e) {
+            if (!e || e.target.id === 'modal') {
+                document.getElementById('modal').classList.remove('open');
+            }
+        }
+        
+        function filterChannel(channel, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            loadTrending(channel);
+        }
+        
+        // Load channels for filter buttons
+        async function loadChannels() {
+            try {
+                const res = await fetch(API_BASE + '/api/channels');
+                const data = await res.json();
+                const filters = document.getElementById('filters');
+                data.channels.forEach(ch => {
+                    const btn = document.createElement('button');
+                    btn.className = 'filter-btn';
+                    btn.textContent = ch.name;
+                    btn.onclick = () => filterChannel(ch.name, btn);
+                    filters.appendChild(btn);
+                });
+            } catch (err) {}
+        }
+        
+        // Enter key search
+        document.getElementById('searchInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') searchClips();
+        });
+        
+        // Init
+        loadChannels();
+        loadTrending();
+    </script>
+</body>
+</html>

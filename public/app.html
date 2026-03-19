@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClipDrop - Find any moment in any video</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0e0e10;
+            color: #efeff1;
+            min-height: 100vh;
+        }
+        
+        header {
+            background: #18181b;
+            border-bottom: 1px solid #2f2f35;
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { font-size: 22px; font-weight: 700; color: #bf94ff; }
+        .logo span { color: #efeff1; }
+        .tagline { color: #adadb8; font-size: 13px; margin-top: 2px; }
+        
+        .session-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+        }
+        .cost-badge {
+            background: #1a3a1a;
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: 600;
+        }
+        
+        .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+        
+        /* Hero search */
+        .hero {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .hero h2 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .hero p { color: #adadb8; margin-bottom: 24px; }
+        
+        .search-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .search-form input {
+            background: #2f2f35;
+            border: 1px solid #464649;
+            color: #efeff1;
+            padding: 14px 18px;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            width: 100%;
+        }
+        .search-form input:focus { border-color: #bf94ff; }
+        .search-form input::placeholder { color: #71717a; }
+        
+        .search-row {
+            display: flex;
+            gap: 10px;
+        }
+        .search-row input { flex: 1; }
+        
+        .btn-search {
+            background: #bf94ff;
+            color: #0e0e10;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-search:hover { background: #a970ff; }
+        .btn-search:disabled {
+            background: #464649;
+            cursor: not-allowed;
+        }
+        
+        /* Status */
+        .status {
+            text-align: center;
+            padding: 24px;
+            color: #adadb8;
+            font-size: 14px;
+            display: none;
+        }
+        .status.show { display: block; }
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #464649;
+            border-top-color: #bf94ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Results */
+        .results { display: none; }
+        .results.show { display: block; }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #2f2f35;
+        }
+        .results-header h3 { font-size: 18px; }
+        .results-count {
+            color: #adadb8;
+            font-size: 13px;
+        }
+        .results-cost {
+            background: #1a3a1a;
+            color: #00ff88;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+        
+        /* Clip cards */
+        .clip-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .clip-item {
+            background: #18181b;
+            border: 1px solid #2f2f35;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            transition: border-color 0.15s;
+        }
+        .clip-item:hover { border-color: #bf94ff; }
+        
+        .clip-timestamp {
+            background: #bf94ff;
+            color: #0e0e10;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: 700;
+            font-size: 14px;
+            white-space: nowrap;
+            min-width: 70px;
+            text-align: center;
+        }
+        
+        .clip-content { flex: 1; }
+        .clip-text {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+        .clip-text mark {
+            background: #bf94ff33;
+            color: #bf94ff;
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+        .clip-context {
+            font-size: 12px;
+            color: #71717a;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+        .clip-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .clip-actions a, .clip-actions button {
+            font-size: 12px;
+            padding: 5px 12px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-watch {
+            background: #ff0000;
+            color: white;
+        }
+        .btn-embed {
+            background: #2f2f35;
+            color: #efeff1;
+        }
+        
+        /* Embed player */
+        .embed-container {
+            margin-top: 12px;
+            border-radius: 8px;
+            overflow: hidden;
+            display: none;
+        }
+        .embed-container.show { display: block; }
+        .embed-container iframe {
+            width: 100%;
+            aspect-ratio: 16/9;
+            border: none;
+        }
+        
+        /* Payment animation */
+        .payment-flash {
+            animation: flash 0.5s ease;
+        }
+        @keyframes flash {
+            0% { background: #1a3a1a; }
+            50% { background: #2a5a2a; }
+            100% { background: #1a3a1a; }
+        }
+        
+        .example-queries {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        .example-btn {
+            background: #2f2f35;
+            border: 1px solid #464649;
+            color: #adadb8;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .example-btn:hover { border-color: #bf94ff; color: #efeff1; }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <div class="logo">Clip<span>Drop</span></div>
+            <div class="tagline">Find any moment in any video. Pay per clip.</div>
+        </div>
+        <div class="session-info">
+            <div class="cost-badge" id="totalCost">$0.00</div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="hero">
+            <h2>What do you want to find?</h2>
+            <p>Paste a YouTube URL and a phrase. We'll find every moment it's spoken.</p>
+            
+            <div class="search-form">
+                <input type="text" id="urlInput" placeholder="YouTube URL (e.g. https://youtube.com/watch?v=...)" />
+                <div class="search-row">
+                    <input type="text" id="phraseInput" placeholder="Search phrase (e.g. Cristiano Ronaldo)" />
+                    <button class="btn-search" id="searchBtn" onclick="findClips()">Find Clips</button>
+                </div>
+            </div>
+            
+            <div class="example-queries">
+                <button class="example-btn" onclick="setExample('https://youtube.com/watch?v=o5nnBM3WH-Q', 'Ronaldo')">Speed - "Ronaldo"</button>
+                <button class="example-btn" onclick="setExample('https://youtube.com/watch?v=o5nnBM3WH-Q', 'sewey')">Speed - "sewey"</button>
+            </div>
+        </div>
+        
+        <div class="status" id="status">
+            <span class="spinner"></span>
+            <span id="statusText">Downloading audio...</span>
+        </div>
+        
+        <div class="results" id="results">
+            <div class="results-header">
+                <div>
+                    <h3 id="resultsTitle">Results</h3>
+                    <span class="results-count" id="resultsCount"></span>
+                </div>
+                <span class="results-cost" id="resultsCost"></span>
+            </div>
+            <div class="clip-list" id="clipList"></div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:8085';
+        let totalSpent = 0;
+        
+        function setExample(url, phrase) {
+            document.getElementById('urlInput').value = url;
+            document.getElementById('phraseInput').value = phrase;
+        }
+        
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
+        
+        function highlightPhrase(text, phrase) {
+            const regex = new RegExp(`(${phrase})`, 'gi');
+            return text.replace(regex, '<mark>$1</mark>');
+        }
+        
+        function updateCost(amount) {
+            totalSpent += amount;
+            const el = document.getElementById('totalCost');
+            el.textContent = '$' + totalSpent.toFixed(2);
+            el.classList.remove('payment-flash');
+            void el.offsetWidth; // trigger reflow
+            el.classList.add('payment-flash');
+        }
+        
+        function showStatus(msg) {
+            document.getElementById('status').classList.add('show');
+            document.getElementById('statusText').textContent = msg;
+        }
+        
+        function hideStatus() {
+            document.getElementById('status').classList.remove('show');
+        }
+        
+        async function findClips() {
+            const url = document.getElementById('urlInput').value.trim();
+            const phrase = document.getElementById('phraseInput').value.trim();
+            
+            if (!url || !phrase) {
+                alert('Enter both a YouTube URL and a search phrase');
+                return;
+            }
+            
+            const btn = document.getElementById('searchBtn');
+            btn.disabled = true;
+            btn.textContent = 'Searching...';
+            document.getElementById('results').classList.remove('show');
+            
+            showStatus('Downloading audio and transcribing... (this may take 30-60s on first run)');
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/find?url=${encodeURIComponent(url)}&phrase=${encodeURIComponent(phrase)}`);
+                const data = await res.json();
+                
+                if (data.error) {
+                    hideStatus();
+                    alert('Error: ' + data.error);
+                    return;
+                }
+                
+                hideStatus();
+                
+                // Calculate cost
+                const clipCost = data.clips.length * 0.02;
+                updateCost(clipCost);
+                
+                // Show results
+                document.getElementById('resultsTitle').textContent = 
+                    `"${phrase}" in video`;
+                document.getElementById('resultsCount').textContent = 
+                    `${data.clips_found} moments found across ${data.total_segments} segments`;
+                document.getElementById('resultsCost').textContent = 
+                    `${data.clips_found} clips x $0.02 = $${clipCost.toFixed(2)}`;
+                
+                const list = document.getElementById('clipList');
+                
+                if (data.clips.length === 0) {
+                    list.innerHTML = '<div style="text-align:center;padding:24px;color:#71717a;">No matches found for that phrase in this video.</div>';
+                } else {
+                    list.innerHTML = data.clips.map((clip, i) => `
+                        <div class="clip-item">
+                            <div class="clip-timestamp">${formatTime(clip.timestamp)}</div>
+                            <div class="clip-content">
+                                <div class="clip-text">${highlightPhrase(clip.text, phrase)}</div>
+                                <div class="clip-context">${highlightPhrase(clip.context, phrase)}</div>
+                                <div class="clip-actions">
+                                    <a class="btn-watch" href="${clip.youtube_url}" target="_blank">Watch on YouTube</a>
+                                    <button class="btn-embed" onclick="toggleEmbed(${i}, '${clip.embed_url}')">Preview</button>
+                                </div>
+                                <div class="embed-container" id="embed-${i}"></div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                
+                document.getElementById('results').classList.add('show');
+                
+            } catch (err) {
+                hideStatus();
+                alert('Failed to connect to ClipDrop API. Make sure api_clips.py is running.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Find Clips';
+            }
+        }
+        
+        function toggleEmbed(index, embedUrl) {
+            const container = document.getElementById(`embed-${index}`);
+            if (container.classList.contains('show')) {
+                container.classList.remove('show');
+                container.innerHTML = '';
+            } else {
+                container.innerHTML = `<iframe src="${embedUrl}" allowfullscreen></iframe>`;
+                container.classList.add('show');
+            }
+        }
+        
+        // Enter key support
+        document.getElementById('phraseInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') findClips();
+        });
+    </script>
+</body>
+</html>
