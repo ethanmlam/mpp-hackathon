@@ -9,6 +9,7 @@
     "test": "npx mppx http://localhost:3000/api/clips/trending"
   },
   "dependencies": {
+    "dotenv": "^17.3.1",
     "hono": "^4",
     "mppx": "latest",
     "viem": "^2"

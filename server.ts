@@ -1,19 +1,32 @@
+import 'dotenv/config'
 import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
 import { Mppx, tempo } from 'mppx/server'
+import { isAddress } from 'viem'
 import { getClips, getClipById, searchClips, type Clip } from './clips.js'
 
-const PORT = 3000
+const PORT = Number(process.env.PORT || 3000)
+
+if (!process.env.MPP_SECRET_KEY) {
+  throw new Error(
+    'Missing MPP_SECRET_KEY. Create a .env with MPP_SECRET_KEY=... (or export it) before starting the server.'
+  )
+}
 
 // Your wallet address - receives payments
-const RECIPIENT = process.env.RECIPIENT_ADDRESS || '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
+const RECIPIENT_RAW =
+  process.env.RECIPIENT_ADDRESS || '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
+if (!isAddress(RECIPIENT_RAW)) {
+  throw new Error(`Invalid RECIPIENT_ADDRESS: ${RECIPIENT_RAW}`)
+}
+const RECIPIENT = RECIPIENT_RAW as `0x${string}`
 
-// pathUSD on Tempo testnet
-const PATHUSD = '0x20c0000000000000000000000000000000000000'
+// USDC (USDC.e) on Tempo mainnet
+const USDC = '0x20C000000000000000000000b9537d11c60E8b50' as const
 
 const mppx = Mppx.create({
   methods: [tempo({
-    currency: PATHUSD,
+    currency: USDC,
     recipient: RECIPIENT,
   })],
 })
@@ -33,7 +46,7 @@ app.get('/', (c) => {
     },
     payment: {
       method: 'tempo',
-      currency: 'pathUSD',
+      currency: 'USDC',
       session: true,
     }
   })
@@ -54,7 +67,11 @@ app.get('/api/channels', (c) => {
 
 // Trending clips - session payment ($0.01 per request)
 app.get('/api/clips/trending', async (c) => {
-  const result = await mppx.session({ amount: '0.01' })(c.req.raw)
+  const result = await mppx.session({
+    amount: '0.01',
+    unitType: 'request',
+    suggestedDeposit: '1.00',
+  })(c.req.raw)
 
   if (result.status === 402) return result.challenge
 
@@ -73,7 +90,11 @@ app.get('/api/clips/trending', async (c) => {
 
 // Search clips - session payment ($0.01 per request)
 app.get('/api/clips/search', async (c) => {
-  const result = await mppx.session({ amount: '0.01' })(c.req.raw)
+  const result = await mppx.session({
+    amount: '0.01',
+    unitType: 'request',
+    suggestedDeposit: '1.00',
+  })(c.req.raw)
 
   if (result.status === 402) return result.challenge
 
@@ -93,7 +114,11 @@ app.get('/api/clips/search', async (c) => {
 
 // Get specific clip - session payment ($0.02 per clip, includes embed URL)
 app.get('/api/clips/:id', async (c) => {
-  const result = await mppx.session({ amount: '0.02' })(c.req.raw)
+  const result = await mppx.session({
+    amount: '0.02',
+    unitType: 'clip',
+    suggestedDeposit: '1.00',
+  })(c.req.raw)
 
   if (result.status === 402) return result.challenge
 

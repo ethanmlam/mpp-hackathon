@@ -16,6 +16,7 @@ An API that serves Twitch clip highlights behind MPP session payments. Agents or
 
 ```bash
 npm install
+# create .env with MPP_SECRET_KEY=...
 npm run dev
 ```
 
@@ -32,10 +33,22 @@ npm run dev
 ## Test
 
 ```bash
-# With Tempo CLI
-tempo request http://localhost:3000/api/clips/trending
+# Free endpoints
+curl -i http://localhost:3000/
+curl -i http://localhost:3000/api/channels
+
+# Paid endpoints return 402 (payment challenge) without a wallet
+curl -i http://localhost:3000/api/clips/trending
+
+# With Tempo CLI (requires a configured wallet)
+tempo wallet login
+# Tip: if you restarted the dev server and get a session reuse error, use 127.0.0.1
+# (different origin = fresh payment session), or close the old session:
+# tempo wallet sessions close http://localhost:3000
+tempo request http://127.0.0.1:3000/api/clips/trending
 
 # With mppx CLI
+npx mppx account create
 npx mppx http://localhost:3000/api/clips/trending
 ```
 
