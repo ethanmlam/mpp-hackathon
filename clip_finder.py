@@ -54,7 +54,8 @@ def download_audio(video_url: str, video_id: str) -> str:
         "--audio-quality", "5",  # lower quality = faster
         "-o", get_cache_path(video_id, ".%(ext)s"),
         "--no-playlist",
-        "--cookies-from-browser", "chrome",  # use Chrome cookies to avoid bot detection
+        "--cookies-from-browser", "chrome",
+        "--remote-components", "ejs:github",
         video_url
     ]
     
