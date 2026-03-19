@@ -14,7 +14,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import threading
 
-from clip_finder import find_clips
+from clip_finder import find_clips, extract_video_id, download_audio, transcribe
 
 PORT = 8085
 
@@ -62,6 +62,43 @@ class ClipHandler(BaseHTTPRequestHandler):
                 self.send_json({"error": str(e)}, 500)
             return
         
+        if parsed.path == '/api/find/stream':
+            params = parse_qs(parsed.query)
+            url = params.get('url', [None])[0]
+            phrase = params.get('phrase', [None])[0]
+            model = params.get('model', ['base'])[0]
+
+            if not url or not phrase:
+                self.send_response(400)
+                self.send_header('Content-Type', 'text/event-stream')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(b'event: error\ndata: {"error":"Missing url or phrase parameter"}\n\n')
+                return
+
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/event-stream')
+            self.send_header('Cache-Control', 'no-cache')
+            self.send_header('Connection', 'keep-alive')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+
+            def send_sse(event_type, data):
+                try:
+                    payload = json.dumps(data)
+                    msg = f"event: {event_type}\ndata: {payload}\n\n"
+                    self.wfile.write(msg.encode())
+                    self.wfile.flush()
+                except Exception:
+                    pass
+
+            try:
+                self.log_message(f"[stream] Finding '{phrase}' in {url}")
+                find_clips(url, phrase, model=model, on_progress=send_sse)
+            except Exception as e:
+                send_sse("error", {"error": str(e)})
+            return
+
         if parsed.path == '/api/transcript':
             params = parse_qs(parsed.query)
             url = params.get('url', [None])[0]
@@ -71,7 +108,6 @@ class ClipHandler(BaseHTTPRequestHandler):
                 return
             
             try:
-                from clip_finder import extract_video_id, download_audio, transcribe
                 video_id = extract_video_id(url)
                 audio_path = download_audio(url, video_id)
                 transcript = transcribe(audio_path, video_id)

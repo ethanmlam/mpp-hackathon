@@ -37,15 +37,19 @@ def get_cache_path(video_id: str, suffix: str) -> str:
     return os.path.join(CACHE_DIR, f"{video_id}{suffix}")
 
 
-def download_audio(video_url: str, video_id: str) -> str:
+def download_audio(video_url: str, video_id: str, on_progress=None) -> str:
     """Download audio from YouTube video using yt-dlp."""
     audio_path = get_cache_path(video_id, ".mp3")
-    
+
     if os.path.exists(audio_path):
         print(f"Using cached audio: {audio_path}", file=sys.stderr)
+        if on_progress:
+            on_progress("status", {"step": "download", "message": "Using cached audio"})
         return audio_path
-    
+
     print(f"Downloading audio from {video_url}...", file=sys.stderr)
+    if on_progress:
+        on_progress("status", {"step": "download", "message": "Downloading audio..."})
     
     cmd = [
         sys.executable, "-m", "yt_dlp",
@@ -79,20 +83,24 @@ def download_audio(video_url: str, video_id: str) -> str:
     return audio_path
 
 
-def transcribe(audio_path: str, video_id: str, model: str = "base") -> dict:
+def transcribe(audio_path: str, video_id: str, model: str = "base", on_progress=None) -> dict:
     """Transcribe audio using Whisper. Returns segments with timestamps."""
     transcript_path = get_cache_path(video_id, "_transcript.json")
-    
+
     if os.path.exists(transcript_path):
         print(f"Using cached transcript", file=sys.stderr)
         with open(transcript_path) as f:
             return json.load(f)
-    
+
     print(f"Transcribing with Whisper ({model})...", file=sys.stderr)
-    
+
     import whisper
-    
+
+    if on_progress:
+        on_progress("status", {"step": "transcribe", "message": "Loading Whisper model..."})
     whisper_model = whisper.load_model(model)
+    if on_progress:
+        on_progress("status", {"step": "transcribe", "message": "Transcribing audio..."})
     result = whisper_model.transcribe(audio_path, word_timestamps=True)
     
     # Extract segments with timestamps
@@ -115,29 +123,31 @@ def transcribe(audio_path: str, video_id: str, model: str = "base") -> dict:
         json.dump(transcript, f, indent=2)
     
     print(f"Transcribed {len(segments)} segments", file=sys.stderr)
+    if on_progress:
+        on_progress("status", {"step": "transcribe", "message": f"Transcribed {len(segments)} segments"})
     return transcript
 
 
-def find_phrase(transcript: dict, phrase: str, context_seconds: int = 5) -> list:
+def find_phrase(transcript: dict, phrase: str, context_seconds: int = 5, on_progress=None) -> list:
     """Find all timestamps where a phrase is spoken."""
     phrase_lower = phrase.lower()
     video_id = transcript["video_id"]
     clips = []
-    
+
     segments = transcript["segments"]
-    
+
     for i, seg in enumerate(segments):
         if phrase_lower in seg["text"].lower():
             # Get surrounding context
             context_start = max(0, i - 2)
             context_end = min(len(segments), i + 3)
             context_text = " ".join(s["text"] for s in segments[context_start:context_end])
-            
+
             # Clip starts a few seconds before the phrase
             clip_start = max(0, int(seg["start"]) - context_seconds)
             clip_end = int(seg["end"]) + context_seconds
-            
-            clips.append({
+
+            clip = {
                 "id": f"{video_id}_{clip_start}",
                 "timestamp": seg["start"],
                 "clip_start": clip_start,
@@ -147,25 +157,30 @@ def find_phrase(transcript: dict, phrase: str, context_seconds: int = 5) -> list
                 "context": context_text,
                 "youtube_url": f"https://youtube.com/watch?v={video_id}&t={clip_start}s",
                 "embed_url": f"https://youtube.com/embed/{video_id}?start={clip_start}&end={clip_end}&autoplay=1",
-            })
-    
+            }
+            clips.append(clip)
+            if on_progress:
+                on_progress("clip", clip)
+
     return clips
 
 
-def find_clips(video_url: str, phrase: str, model: str = "base") -> dict:
+def find_clips(video_url: str, phrase: str, model: str = "base", on_progress=None) -> dict:
     """Main entry point: find all clips matching a phrase in a YouTube video."""
     video_id = extract_video_id(video_url)
-    
+
     # Download audio
-    audio_path = download_audio(video_url, video_id)
-    
+    audio_path = download_audio(video_url, video_id, on_progress=on_progress)
+
     # Transcribe
-    transcript = transcribe(audio_path, video_id, model=model)
-    
+    transcript = transcribe(audio_path, video_id, model=model, on_progress=on_progress)
+
     # Find phrase
-    clips = find_phrase(transcript, phrase)
-    
-    return {
+    if on_progress:
+        on_progress("status", {"step": "search", "message": f"Searching for phrase..."})
+    clips = find_phrase(transcript, phrase, on_progress=on_progress)
+
+    result = {
         "video_id": video_id,
         "video_url": f"https://youtube.com/watch?v={video_id}",
         "phrase": phrase,
@@ -173,6 +188,11 @@ def find_clips(video_url: str, phrase: str, model: str = "base") -> dict:
         "clips_found": len(clips),
         "clips": clips,
     }
+
+    if on_progress:
+        on_progress("done", result)
+
+    return result
 
 
 if __name__ == "__main__":

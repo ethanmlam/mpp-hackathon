@@ -344,76 +344,120 @@
             document.getElementById('status').classList.remove('show');
         }
         
-        async function findClips() {
+        let clipIndex = 0;
+        let currentPhrase = '';
+
+        function appendClip(clip, index, phrase) {
+            const list = document.getElementById('clipList');
+            // Remove "no matches" placeholder if present
+            const placeholder = list.querySelector('.no-matches');
+            if (placeholder) placeholder.remove();
+
+            const div = document.createElement('div');
+            div.className = 'clip-item';
+            div.innerHTML = `
+                <div class="clip-timestamp">${formatTime(clip.timestamp)}</div>
+                <div class="clip-content">
+                    <div class="clip-text">${highlightPhrase(clip.text, phrase)}</div>
+                    <div class="clip-context">${highlightPhrase(clip.context, phrase)}</div>
+                    <div class="clip-actions">
+                        <a class="btn-watch" href="${clip.youtube_url}" target="_blank">Watch on YouTube</a>
+                        <button class="btn-embed" onclick="toggleEmbed(${index}, '${clip.embed_url}')">Preview</button>
+                    </div>
+                    <div class="embed-container" id="embed-${index}"></div>
+                </div>
+            `;
+            list.appendChild(div);
+        }
+
+        function findClips() {
             const url = document.getElementById('urlInput').value.trim();
             const phrase = document.getElementById('phraseInput').value.trim();
-            
+
             if (!url || !phrase) {
                 alert('Enter both a YouTube URL and a search phrase');
                 return;
             }
-            
+
             const btn = document.getElementById('searchBtn');
             btn.disabled = true;
             btn.textContent = 'Searching...';
+
+            // Reset results
             document.getElementById('results').classList.remove('show');
-            
-            showStatus('Downloading audio and transcribing... (this may take 30-60s on first run)');
-            
-            try {
-                const res = await fetch(`${API_BASE}/api/find?url=${encodeURIComponent(url)}&phrase=${encodeURIComponent(phrase)}`);
-                const data = await res.json();
-                
-                if (data.error) {
-                    hideStatus();
-                    alert('Error: ' + data.error);
-                    return;
+            document.getElementById('clipList').innerHTML = '';
+            document.getElementById('resultsCount').textContent = '';
+            document.getElementById('resultsCost').textContent = '';
+            clipIndex = 0;
+            currentPhrase = phrase;
+
+            showStatus('Connecting...');
+
+            const streamUrl = `${API_BASE}/api/find/stream?url=${encodeURIComponent(url)}&phrase=${encodeURIComponent(phrase)}`;
+            const es = new EventSource(streamUrl);
+
+            es.addEventListener('status', (e) => {
+                const data = JSON.parse(e.data);
+                const stepLabels = {
+                    download: 'Downloading audio',
+                    transcribe: 'Transcribing',
+                    search: 'Searching',
+                };
+                const label = stepLabels[data.step] || data.step;
+                showStatus(`${label}: ${data.message}`);
+            });
+
+            es.addEventListener('clip', (e) => {
+                const clip = JSON.parse(e.data);
+                // Show results container on first clip
+                const results = document.getElementById('results');
+                if (!results.classList.contains('show')) {
+                    document.getElementById('resultsTitle').textContent = `"${phrase}" in video`;
+                    results.classList.add('show');
                 }
-                
+                appendClip(clip, clipIndex++, phrase);
+                // Update running count
+                document.getElementById('resultsCount').textContent =
+                    `${clipIndex} moment${clipIndex !== 1 ? 's' : ''} found so far...`;
+                updateCost(0.02);
+            });
+
+            es.addEventListener('done', (e) => {
+                const data = JSON.parse(e.data);
+                es.close();
+
                 hideStatus();
-                
-                // Calculate cost
-                const clipCost = data.clips.length * 0.02;
-                updateCost(clipCost);
-                
-                // Show results
-                document.getElementById('resultsTitle').textContent = 
-                    `"${phrase}" in video`;
-                document.getElementById('resultsCount').textContent = 
-                    `${data.clips_found} moments found across ${data.total_segments} segments`;
-                document.getElementById('resultsCost').textContent = 
-                    `${data.clips_found} clips x $0.02 = $${clipCost.toFixed(2)}`;
-                
-                const list = document.getElementById('clipList');
-                
-                if (data.clips.length === 0) {
-                    list.innerHTML = '<div style="text-align:center;padding:24px;color:#71717a;">No matches found for that phrase in this video.</div>';
-                } else {
-                    list.innerHTML = data.clips.map((clip, i) => `
-                        <div class="clip-item">
-                            <div class="clip-timestamp">${formatTime(clip.timestamp)}</div>
-                            <div class="clip-content">
-                                <div class="clip-text">${highlightPhrase(clip.text, phrase)}</div>
-                                <div class="clip-context">${highlightPhrase(clip.context, phrase)}</div>
-                                <div class="clip-actions">
-                                    <a class="btn-watch" href="${clip.youtube_url}" target="_blank">Watch on YouTube</a>
-                                    <button class="btn-embed" onclick="toggleEmbed(${i}, '${clip.embed_url}')">Preview</button>
-                                </div>
-                                <div class="embed-container" id="embed-${i}"></div>
-                            </div>
-                        </div>
-                    `).join('');
-                }
-                
-                document.getElementById('results').classList.add('show');
-                
-            } catch (err) {
-                hideStatus();
-                alert('Failed to connect to ClipDrop API. Make sure api_clips.py is running.');
-            } finally {
                 btn.disabled = false;
                 btn.textContent = 'Find Clips';
-            }
+
+                const clipCost = data.clips_found * 0.02;
+                document.getElementById('resultsTitle').textContent = `"${phrase}" in video`;
+                document.getElementById('resultsCount').textContent =
+                    `${data.clips_found} moment${data.clips_found !== 1 ? 's' : ''} found across ${data.total_segments} segments`;
+                document.getElementById('resultsCost').textContent =
+                    `${data.clips_found} clips x $0.02 = $${clipCost.toFixed(2)}`;
+
+                const results = document.getElementById('results');
+                results.classList.add('show');
+
+                if (data.clips_found === 0) {
+                    document.getElementById('clipList').innerHTML =
+                        '<div class="no-matches" style="text-align:center;padding:24px;color:#71717a;">No matches found for that phrase in this video.</div>';
+                }
+            });
+
+            es.addEventListener('error', (e) => {
+                es.close();
+                hideStatus();
+                btn.disabled = false;
+                btn.textContent = 'Find Clips';
+                try {
+                    const data = JSON.parse(e.data);
+                    alert('Error: ' + data.error);
+                } catch (_) {
+                    alert('Failed to connect to ClipDrop API. Make sure api_clips.py is running.');
+                }
+            });
         }
         
         function toggleEmbed(index, embedUrl) {
