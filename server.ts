@@ -21,12 +21,21 @@ if (!isAddress(RECIPIENT_RAW)) {
 }
 const RECIPIENT = RECIPIENT_RAW as `0x${string}`
 
-// USDC (USDC.e) on Tempo mainnet
-const USDC = '0x20C000000000000000000000b9537d11c60E8b50' as const
+// Toggle: NETWORK=testnet or NETWORK=mainnet (default: mainnet)
+const NETWORK = process.env.NETWORK || 'mainnet'
+
+const TOKENS = {
+  mainnet: '0x20C000000000000000000000b9537d11c60E8b50' as const,  // USDC on Tempo mainnet
+  testnet: '0x20c0000000000000000000000000000000000000' as const,  // pathUSD on Tempo testnet
+}
+
+const CURRENCY = TOKENS[NETWORK as keyof typeof TOKENS] || TOKENS.mainnet
+
+console.log(`Network: ${NETWORK} | Currency: ${CURRENCY}`)
 
 const mppx = Mppx.create({
   methods: [tempo({
-    currency: USDC,
+    currency: CURRENCY,
     recipient: RECIPIENT,
   })],
 })
