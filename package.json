@@ -1,0 +1,20 @@
+{
+  "name": "clip-service",
+  "version": "0.1.0",
+  "description": "Pay-per-clip Twitch highlight service via MPP sessions",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch server.ts",
+    "start": "tsx server.ts",
+    "test": "npx mppx http://localhost:3000/api/clips/trending"
+  },
+  "dependencies": {
+    "hono": "^4",
+    "mppx": "latest",
+    "viem": "^2"
+  },
+  "devDependencies": {
+    "tsx": "^4",
+    "typescript": "^5"
+  }
+}
