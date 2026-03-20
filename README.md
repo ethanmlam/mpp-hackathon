@@ -1,5 +1,7 @@
 # Clip Service
 
+<img width="1512" height="855" alt="Screenshot 2026-03-19 at 7 35 21 PM" src="https://github.com/user-attachments/assets/2b2b0ee4-bb3c-4dc0-ac8c-3af8917694b3" />
+
 Pay-per-clip Twitch highlights via MPP sessions on Tempo.
 
 ## What
@@ -19,6 +21,8 @@ npm install
 # create .env with MPP_SECRET_KEY=...
 npm run dev
 ```
+
+
 
 ## Endpoints
 
