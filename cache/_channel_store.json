@@ -1,0 +1,23 @@
+{
+  "0xd82337c8f509ca2073387f1127f20213dda25d0d1894cc5e4acfc79492ca64cc": {
+    "channelId": "0xd82337c8f509ca2073387f1127f20213dda25d0d1894cc5e4acfc79492ca64cc",
+    "chainId": 4217,
+    "escrowContract": "0x33b901018174DDabE4841042ab76ba85D4e24f25",
+    "payer": "0x110A17F1b4f2C9B394BaA5914F8E87bc579C2dd1",
+    "payee": "0xE4191e89EA8A00B1F4417c1029Eff040E8236Ba9",
+    "token": "0x20C000000000000000000000b9537d11c60E8b50",
+    "authorizedSigner": "0x3c6DD00CBB0DB3F931E6d4b062fACe160C8cfC3C",
+    "deposit": "__bigint__1000000",
+    "settledOnChain": "__bigint__0",
+    "highestVoucherAmount": "__bigint__80000",
+    "highestVoucher": {
+      "channelId": "0xd82337c8f509ca2073387f1127f20213dda25d0d1894cc5e4acfc79492ca64cc",
+      "cumulativeAmount": "__bigint__80000",
+      "signature": "0xdafae90b27bf94f12e99924f8daadcc6f41f4a97cdd7238465a11741ad0a1dd506d89292083114f374529c84e268505b62b8978501c0f6ca254bb5622d49cc721c"
+    },
+    "spent": "__bigint__0",
+    "units": 0,
+    "finalized": false,
+    "createdAt": "2026-03-19T23:54:22.981Z"
+  }
+}

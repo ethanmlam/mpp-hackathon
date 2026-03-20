@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 """
-Clip Finder - Downloads YouTube audio, transcribes with Whisper,
-finds all timestamps where a phrase is spoken.
-Returns timestamped YouTube links as "clips".
+Clip Finder - Fetches YouTube transcripts and finds all timestamps
+where a phrase is spoken. Returns timestamped YouTube links as "clips".
 """
 
 import json
 import os
 import sys
 import subprocess
-import tempfile
 import re
-import hashlib
+
+from youtube_transcript_api import YouTubeTranscriptApi
 
 CACHE_DIR = os.path.join(os.path.dirname(__file__), "cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
@@ -83,52 +82,85 @@ def download_audio(video_url: str, video_id: str, on_progress=None) -> str:
     return audio_path
 
 
-def transcribe(audio_path: str, video_id: str, model: str = "base", on_progress=None) -> dict:
-    """Transcribe audio using Whisper. Returns segments with timestamps."""
-    transcript_path = get_cache_path(video_id, "_transcript.json")
+def extract_clip(video_url: str, video_id: str, start: int, end: int) -> str:
+    """Extract a video clip segment using yt-dlp --download-sections."""
+    clip_path = get_cache_path(video_id, f"_{start}_{end}.mp4")
+
+    if os.path.exists(clip_path):
+        print(f"Using cached clip: {clip_path}", file=sys.stderr)
+        return clip_path
+
+    print(f"Extracting clip {start}s-{end}s from {video_url}...", file=sys.stderr)
+
+    cmd = [
+        sys.executable, "-m", "yt_dlp",
+        "--download-sections", f"*{start}-{end}",
+        "-f", "bv*[height<=720]+ba/b[height<=720]",
+        "--remux-video", "mp4",
+        "--force-keyframes-at-cuts",
+        "-o", get_cache_path(video_id, f"_{start}_{end}.%(ext)s"),
+        "--no-playlist",
+        "--cookies-from-browser", "chrome",
+        "--remote-components", "ejs:github",
+        video_url
+    ]
+
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+
+    if result.returncode != 0:
+        raise Exception(f"yt-dlp clip extract failed: {result.stderr[:500]}")
+
+    if not os.path.exists(clip_path):
+        raise Exception("Clip file not found after extraction")
+
+    print(f"Clip extracted: {clip_path}", file=sys.stderr)
+    return clip_path
+
+
+def fetch_transcript(video_id: str, on_progress=None) -> dict:
+    """Fetch transcript from YouTube. Returns segments with timestamps."""
+    transcript_path = get_cache_path(video_id, "_yt_transcript.json")
 
     if os.path.exists(transcript_path):
         print(f"Using cached transcript", file=sys.stderr)
+        if on_progress:
+            on_progress("status", {"step": "transcript", "message": "Using cached transcript"})
         with open(transcript_path) as f:
             return json.load(f)
 
-    print(f"Transcribing with Whisper ({model})...", file=sys.stderr)
-
-    import whisper
-
+    print(f"Fetching YouTube transcript...", file=sys.stderr)
     if on_progress:
-        on_progress("status", {"step": "transcribe", "message": "Loading Whisper model..."})
-    whisper_model = whisper.load_model(model)
-    if on_progress:
-        on_progress("status", {"step": "transcribe", "message": "Transcribing audio..."})
-    result = whisper_model.transcribe(audio_path, word_timestamps=True)
-    
-    # Extract segments with timestamps
+        on_progress("status", {"step": "transcript", "message": "Fetching YouTube transcript..."})
+
+    api = YouTubeTranscriptApi()
+    fetched = api.fetch(video_id)
+
     segments = []
-    for seg in result.get("segments", []):
+    for snippet in fetched.snippets:
         segments.append({
-            "start": round(seg["start"], 2),
-            "end": round(seg["end"], 2),
-            "text": seg["text"].strip(),
+            "start": round(snippet.start, 2),
+            "end": round(snippet.start + snippet.duration, 2),
+            "text": snippet.text.strip(),
         })
-    
+
+    full_text = " ".join(s["text"] for s in segments)
     transcript = {
         "video_id": video_id,
-        "language": result.get("language", "en"),
+        "language": "en",
         "segments": segments,
-        "full_text": result.get("text", ""),
+        "full_text": full_text,
     }
-    
+
     with open(transcript_path, "w") as f:
         json.dump(transcript, f, indent=2)
-    
-    print(f"Transcribed {len(segments)} segments", file=sys.stderr)
+
+    print(f"Fetched {len(segments)} segments", file=sys.stderr)
     if on_progress:
-        on_progress("status", {"step": "transcribe", "message": f"Transcribed {len(segments)} segments"})
+        on_progress("status", {"step": "transcript", "message": f"Fetched {len(segments)} segments"})
     return transcript
 
 
-def find_phrase(transcript: dict, phrase: str, context_seconds: int = 5, on_progress=None) -> list:
+def find_phrase(transcript: dict, phrase: str, context_seconds: int = 0, on_progress=None) -> list:
     """Find all timestamps where a phrase is spoken."""
     phrase_lower = phrase.lower()
     video_id = transcript["video_id"]
@@ -157,6 +189,7 @@ def find_phrase(transcript: dict, phrase: str, context_seconds: int = 5, on_prog
                 "context": context_text,
                 "youtube_url": f"https://youtube.com/watch?v={video_id}&t={clip_start}s",
                 "embed_url": f"https://youtube.com/embed/{video_id}?start={clip_start}&end={clip_end}&autoplay=1",
+                "clip_extract_url": f"/api/clip/extract?url=https://youtube.com/watch?v={video_id}&start={clip_start}&end={clip_end}",
             }
             clips.append(clip)
             if on_progress:
@@ -169,11 +202,8 @@ def find_clips(video_url: str, phrase: str, model: str = "base", on_progress=Non
     """Main entry point: find all clips matching a phrase in a YouTube video."""
     video_id = extract_video_id(video_url)
 
-    # Download audio
-    audio_path = download_audio(video_url, video_id, on_progress=on_progress)
-
-    # Transcribe
-    transcript = transcribe(audio_path, video_id, model=model, on_progress=on_progress)
+    # Fetch transcript from YouTube
+    transcript = fetch_transcript(video_id, on_progress=on_progress)
 
     # Find phrase
     if on_progress:

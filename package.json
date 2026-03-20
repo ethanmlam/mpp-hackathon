@@ -1,12 +1,13 @@
 {
   "name": "clip-service",
   "version": "0.1.0",
-  "description": "Pay-per-clip Twitch highlight service via MPP sessions",
+  "description": "Pay-per-clip YouTube clip finder via MPP sessions",
   "type": "module",
   "scripts": {
+    "build:client": "npx esbuild public/client.ts --bundle --format=iife --global-name=ClipDropModule --outfile=public/client.js --platform=browser --target=es2020 --minify",
     "dev": "tsx watch server.ts",
     "start": "tsx server.ts",
-    "test": "npx mppx http://localhost:3000/api/clips/trending"
+    "test": "npx mppx http://localhost:3000/api/find?url=https://youtube.com/watch?v=o5nnBM3WH-Q&phrase=Ronaldo"
   },
   "dependencies": {
     "dotenv": "^17.3.1",

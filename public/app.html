@@ -12,7 +12,7 @@
             color: #efeff1;
             min-height: 100vh;
         }
-        
+
         header {
             background: #18181b;
             border-bottom: 1px solid #2f2f35;
@@ -24,7 +24,7 @@
         .logo { font-size: 22px; font-weight: 700; color: #bf94ff; }
         .logo span { color: #efeff1; }
         .tagline { color: #adadb8; font-size: 13px; margin-top: 2px; }
-        
+
         .session-info {
             display: flex;
             align-items: center;
@@ -40,63 +40,154 @@
             font-family: monospace;
             font-weight: 600;
         }
-        
-        .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
-        
-        /* Hero search */
-        .hero {
-            text-align: center;
-            margin-bottom: 40px;
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 32px 24px; }
+
+        /* Terminal input */
+        .terminal {
+            margin-bottom: 32px;
         }
-        .hero h2 {
+        .terminal h2 {
             font-size: 28px;
             margin-bottom: 8px;
+            text-align: center;
         }
-        .hero p { color: #adadb8; margin-bottom: 24px; }
-        
-        .search-form {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            max-width: 600px;
-            margin: 0 auto;
+        .terminal > p {
+            color: #adadb8;
+            margin-bottom: 20px;
+            text-align: center;
         }
-        .search-form input {
+        .terminal-box {
+            background: #1a1a2e;
+            border: 1px solid #2f2f35;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .terminal-titlebar {
             background: #2f2f35;
-            border: 1px solid #464649;
-            color: #efeff1;
-            padding: 14px 18px;
-            border-radius: 8px;
-            font-size: 15px;
-            outline: none;
-            width: 100%;
-        }
-        .search-form input:focus { border-color: #bf94ff; }
-        .search-form input::placeholder { color: #71717a; }
-        
-        .search-row {
+            padding: 8px 14px;
             display: flex;
-            gap: 10px;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #71717a;
         }
-        .search-row input { flex: 1; }
-        
-        .btn-search {
+        .terminal-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+        }
+        .terminal-dot.red { background: #ff5f57; }
+        .terminal-dot.yellow { background: #febc2e; }
+        .terminal-dot.green { background: #28c840; }
+        .terminal-input-row {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            gap: 8px;
+        }
+        .terminal-prompt {
+            color: #bf94ff;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+            user-select: none;
+        }
+        .terminal-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #efeff1;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 14px;
+            outline: none;
+        }
+        .terminal-input::placeholder { color: #464649; }
+        .btn-run {
             background: #bf94ff;
             color: #0e0e10;
             border: none;
-            padding: 14px 32px;
-            border-radius: 8px;
+            padding: 8px 20px;
+            border-radius: 6px;
             font-weight: 700;
-            font-size: 15px;
+            font-size: 13px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
             cursor: pointer;
             transition: background 0.15s;
         }
-        .btn-search:hover { background: #a970ff; }
-        .btn-search:disabled {
-            background: #464649;
-            cursor: not-allowed;
+        .btn-run:hover { background: #a970ff; }
+        .btn-run:disabled { background: #464649; cursor: not-allowed; }
+
+        .example-queries {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 16px;
         }
-        
+        .example-btn {
+            background: #2f2f35;
+            border: 1px solid #464649;
+            color: #adadb8;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+        .example-btn:hover { border-color: #bf94ff; color: #efeff1; }
+
+        /* Transaction log */
+        .tx-log {
+            background: #18181b;
+            border: 1px solid #2f2f35;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: none;
+        }
+        .tx-log.show { display: block; }
+        .tx-log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid #2f2f35;
+            cursor: pointer;
+            user-select: none;
+        }
+        .tx-log-header:hover { background: #1e1e22; }
+        .tx-log-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #adadb8;
+        }
+        .tx-log-toggle {
+            font-size: 11px;
+            color: #71717a;
+        }
+        .tx-log-body {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .tx-log-body.collapsed { display: none; }
+        .tx-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            border-bottom: 1px solid #1a1a1e;
+        }
+        .tx-entry:last-child { border-bottom: none; }
+        .tx-entry.new { animation: txFlash 0.6s ease; }
+        @keyframes txFlash {
+            0% { background: #1a3a1a; }
+            100% { background: transparent; }
+        }
+        .tx-type { color: #adadb8; }
+        .tx-desc { color: #71717a; flex: 1; margin: 0 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .tx-amount { color: #00ff88; font-weight: 600; white-space: nowrap; }
+
         /* Status */
         .status {
             text-align: center;
@@ -118,11 +209,11 @@
             vertical-align: middle;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        
+
         /* Results */
         .results { display: none; }
         .results.show { display: block; }
-        
+
         .results-header {
             display: flex;
             justify-content: space-between;
@@ -132,10 +223,7 @@
             border-bottom: 1px solid #2f2f35;
         }
         .results-header h3 { font-size: 18px; }
-        .results-count {
-            color: #adadb8;
-            font-size: 13px;
-        }
+        .results-count { color: #adadb8; font-size: 13px; }
         .results-cost {
             background: #1a3a1a;
             color: #00ff88;
@@ -144,119 +232,80 @@
             font-family: monospace;
             font-size: 13px;
         }
-        
-        /* Clip cards */
+
+        /* Clip cards - 2x2 grid */
         .clip-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
         }
         .clip-item {
             background: #18181b;
             border: 1px solid #2f2f35;
-            border-radius: 8px;
-            padding: 16px;
+            border-radius: 6px;
+            padding: 10px;
             display: flex;
-            gap: 16px;
-            align-items: flex-start;
+            flex-direction: column;
+            gap: 6px;
             transition: border-color 0.15s;
         }
         .clip-item:hover { border-color: #bf94ff; }
-        
+        .clip-top-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
         .clip-timestamp {
             background: #bf94ff;
             color: #0e0e10;
-            padding: 6px 12px;
-            border-radius: 6px;
+            padding: 3px 8px;
+            border-radius: 4px;
             font-family: monospace;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 12px;
             white-space: nowrap;
-            min-width: 70px;
-            text-align: center;
         }
-        
         .clip-content { flex: 1; }
-        .clip-text {
-            font-size: 14px;
-            line-height: 1.5;
-            margin-bottom: 8px;
-        }
+        .clip-text { font-size: 12px; line-height: 1.4; margin-bottom: 4px; }
         .clip-text mark {
             background: #bf94ff33;
             color: #bf94ff;
-            padding: 1px 4px;
-            border-radius: 3px;
+            padding: 1px 3px;
+            border-radius: 2px;
         }
-        .clip-context {
-            font-size: 12px;
-            color: #71717a;
-            line-height: 1.4;
-            margin-bottom: 10px;
-        }
-        .clip-actions {
-            display: flex;
-            gap: 8px;
-        }
+        .clip-context { font-size: 11px; color: #71717a; line-height: 1.3; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .clip-actions { display: flex; gap: 6px; flex-wrap: wrap; }
         .clip-actions a, .clip-actions button {
-            font-size: 12px;
-            padding: 5px 12px;
-            border-radius: 5px;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
             text-decoration: none;
             font-weight: 600;
             cursor: pointer;
             border: none;
         }
-        .btn-watch {
-            background: #ff0000;
-            color: white;
-        }
-        .btn-embed {
+        .btn-watch { background: #ff0000; color: white; }
+        .btn-embed { background: #2f2f35; color: #efeff1; }
+        .btn-extract {
             background: #2f2f35;
-            color: #efeff1;
+            color: #bf94ff;
+            border: 1px solid #bf94ff44;
         }
-        
+        .btn-extract:hover { background: #3a3a45; }
+        .btn-extract:disabled { opacity: 0.5; cursor: not-allowed; }
+
         /* Embed player */
-        .embed-container {
-            margin-top: 12px;
-            border-radius: 8px;
-            overflow: hidden;
-            display: none;
-        }
+        .embed-container { margin-top: 12px; border-radius: 8px; overflow: hidden; display: none; }
         .embed-container.show { display: block; }
-        .embed-container iframe {
-            width: 100%;
-            aspect-ratio: 16/9;
-            border: none;
-        }
-        
+        .embed-container iframe { width: 100%; aspect-ratio: 16/9; border: none; }
+
         /* Payment animation */
-        .payment-flash {
-            animation: flash 0.5s ease;
-        }
+        .payment-flash { animation: flash 0.5s ease; }
         @keyframes flash {
             0% { background: #1a3a1a; }
             50% { background: #2a5a2a; }
             100% { background: #1a3a1a; }
         }
-        
-        .example-queries {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 12px;
-        }
-        .example-btn {
-            background: #2f2f35;
-            border: 1px solid #464649;
-            color: #adadb8;
-            padding: 6px 14px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .example-btn:hover { border-color: #bf94ff; color: #efeff1; }
     </style>
 </head>
 <body>
@@ -266,34 +315,70 @@
             <div class="tagline">Find any moment in any video. Pay per clip.</div>
         </div>
         <div class="session-info">
+            <span id="walletBadge" style="display:none;background:#2f2f35;border:1px solid #464649;color:#00ff88;padding:6px 12px;border-radius:6px;font-family:monospace;font-size:12px;"></span>
+            <input type="password" id="privateKey" placeholder="Tempo private key (0x...)"
+                style="background:#2f2f35;border:1px solid #464649;color:#efeff1;padding:6px 12px;border-radius:6px;font-family:monospace;font-size:12px;width:320px;" />
             <div class="cost-badge" id="totalCost">$0.00</div>
         </div>
     </header>
-    
+
     <div class="container">
-        <div class="hero">
+        <div class="terminal">
             <h2>What do you want to find?</h2>
-            <p>Paste a YouTube URL and a phrase. We'll find every moment it's spoken.</p>
-            
-            <div class="search-form">
-                <input type="text" id="urlInput" placeholder="YouTube URL (e.g. https://youtube.com/watch?v=...)" />
-                <div class="search-row">
-                    <input type="text" id="phraseInput" placeholder="Search phrase (e.g. Cristiano Ronaldo)" />
-                    <button class="btn-search" id="searchBtn" onclick="findClips()">Find Clips</button>
+            <p>Paste a tempo request command, an API URL, or just a YouTube URL + phrase.</p>
+
+            <div class="terminal-box">
+                <div class="terminal-titlebar">
+                    <span class="terminal-dot red"></span>
+                    <span class="terminal-dot yellow"></span>
+                    <span class="terminal-dot green"></span>
+                    <span>ClipDrop</span>
+                </div>
+                <div class="terminal-input-row">
+                    <span class="terminal-prompt">$</span>
+                    <input type="text" class="terminal-input" id="cmdInput"
+                        placeholder='tempo request "http://localhost:3000/api/find?url=https://youtube.com/watch?v=...&phrase=Ronaldo"' />
+                    <button class="btn-run" id="searchBtn" onclick="runCommand()">Run</button>
                 </div>
             </div>
-            
+
             <div class="example-queries">
-                <button class="example-btn" onclick="setExample('https://youtube.com/watch?v=o5nnBM3WH-Q', 'Ronaldo')">Speed - "Ronaldo"</button>
-                <button class="example-btn" onclick="setExample('https://youtube.com/watch?v=o5nnBM3WH-Q', 'sewey')">Speed - "sewey"</button>
+                <button class="example-btn" onclick="setExample('tempo request &quot;http://localhost:3000/api/find?url=https://www.youtube.com/watch?v=7RaC2nKBqv4&phrase=ronaldo&quot;')">Speed - "ronaldo"</button>
+                <button class="example-btn" onclick="setExample('tempo request &quot;http://localhost:3000/api/find?url=https://www.youtube.com/watch?v=nutBuwNzlec&phrase=ben&quot;')">Speed - "ben"</button>
+                <button class="example-btn" onclick="setExample('tempo request &quot;http://localhost:3000/api/find?url=https://www.youtube.com/watch?v=hlOA8ObQJXo&phrase=brain&quot;')">Huberman Podcast - "brain"</button>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:12px;margin:20px auto 0;max-width:600px;">
+                <div style="flex:1;height:1px;background:#2f2f35;"></div>
+                <span style="color:#71717a;font-size:12px;">or use simple fields</span>
+                <div style="flex:1;height:1px;background:#2f2f35;"></div>
+            </div>
+
+            <div class="simple-fields" style="display:flex;flex-direction:column;gap:10px;max-width:600px;margin:16px auto 0;">
+                <input type="text" id="urlInput" placeholder="YouTube URL (e.g. https://youtube.com/watch?v=...)"
+                    style="background:#2f2f35;border:1px solid #464649;color:#efeff1;padding:12px 16px;border-radius:8px;font-size:14px;outline:none;width:100%;" />
+                <div style="display:flex;gap:10px;">
+                    <input type="text" id="phraseInput" placeholder="Search phrase (e.g. Ronaldo)"
+                        style="flex:1;background:#2f2f35;border:1px solid #464649;color:#efeff1;padding:12px 16px;border-radius:8px;font-size:14px;outline:none;" />
+                    <button class="btn-run" onclick="runFromFields()">Find</button>
+                </div>
             </div>
         </div>
-        
+
+        <!-- Transaction log -->
+        <div class="tx-log" id="txLog">
+            <div class="tx-log-header" onclick="toggleTxLog()">
+                <span class="tx-log-title" id="txLogTitle">Transactions (0)</span>
+                <span class="tx-log-toggle" id="txLogToggle">Hide</span>
+            </div>
+            <div class="tx-log-body" id="txLogBody"></div>
+        </div>
+
         <div class="status" id="status">
             <span class="spinner"></span>
             <span id="statusText">Downloading audio...</span>
         </div>
-        
+
         <div class="results" id="results">
             <div class="results-header">
                 <div>
@@ -305,85 +390,157 @@
             <div class="clip-list" id="clipList"></div>
         </div>
     </div>
-    
+
+    <script src="/public/client.js"></script>
     <script>
-        const API_BASE = 'http://localhost:8085';
+        const API_BASE = '';
         let totalSpent = 0;
-        
-        function setExample(url, phrase) {
-            document.getElementById('urlInput').value = url;
-            document.getElementById('phraseInput').value = phrase;
+        let txCount = 0;
+        let clipIndex = 0;
+        let currentPhrase = '';
+
+        function setExample(cmd) {
+            document.getElementById('cmdInput').value = cmd;
         }
-        
+
+        // Parse any input format into {url, phrase}
+        function parseCommand(input) {
+            input = input.trim();
+
+            // Format 1: Full API URL with query params (with or without tempo/mppx prefix)
+            // e.g. "tempo request http://localhost:3000/api/find?url=...&phrase=..."
+            // e.g. "http://localhost:3000/api/find?url=...&phrase=..."
+            // e.g. "tempo request /api/find?url=...&phrase=..."
+            const apiUrlMatch = input.match(/\/api\/find\?(.+)/);
+            if (apiUrlMatch) {
+                const params = new URLSearchParams(apiUrlMatch[1]);
+                const url = params.get('url');
+                const phrase = params.get('phrase');
+                if (url && phrase) return { url, phrase };
+            }
+
+            // Format 2: YouTube URL + phrase (space-separated)
+            // e.g. "https://youtube.com/watch?v=abc123 Ronaldo"
+            const ytMatch = input.match(/(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)\S+)\s+(.+)/);
+            if (ytMatch) {
+                return { url: ytMatch[1], phrase: ytMatch[2].trim() };
+            }
+
+            return null;
+        }
+
         function formatTime(seconds) {
             const m = Math.floor(seconds / 60);
             const s = Math.floor(seconds % 60);
             return `${m}:${s.toString().padStart(2, '0')}`;
         }
-        
+
         function highlightPhrase(text, phrase) {
-            const regex = new RegExp(`(${phrase})`, 'gi');
+            const regex = new RegExp(`(${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
             return text.replace(regex, '<mark>$1</mark>');
         }
-        
+
         function updateCost(amount) {
             totalSpent += amount;
             const el = document.getElementById('totalCost');
             el.textContent = '$' + totalSpent.toFixed(2);
             el.classList.remove('payment-flash');
-            void el.offsetWidth; // trigger reflow
+            void el.offsetWidth;
             el.classList.add('payment-flash');
         }
-        
+
+        function addTransaction(type, desc, amount) {
+            txCount++;
+            const log = document.getElementById('txLog');
+            log.classList.add('show');
+            document.getElementById('txLogTitle').textContent = `Transactions (${txCount})`;
+
+            const body = document.getElementById('txLogBody');
+            const entry = document.createElement('div');
+            entry.className = 'tx-entry new';
+            const time = new Date().toLocaleTimeString();
+            entry.innerHTML = `
+                <span class="tx-type">${time}</span>
+                <span class="tx-desc">${type}: ${desc}</span>
+                <span class="tx-amount">${amount}</span>
+            `;
+            body.insertBefore(entry, body.firstChild);
+            setTimeout(() => entry.classList.remove('new'), 600);
+        }
+
+        function toggleTxLog() {
+            const body = document.getElementById('txLogBody');
+            const toggle = document.getElementById('txLogToggle');
+            body.classList.toggle('collapsed');
+            toggle.textContent = body.classList.contains('collapsed') ? 'Show' : 'Hide';
+        }
+
         function showStatus(msg) {
             document.getElementById('status').classList.add('show');
             document.getElementById('statusText').textContent = msg;
         }
-        
+
         function hideStatus() {
             document.getElementById('status').classList.remove('show');
         }
-        
-        let clipIndex = 0;
-        let currentPhrase = '';
 
         function appendClip(clip, index, phrase) {
             const list = document.getElementById('clipList');
-            // Remove "no matches" placeholder if present
             const placeholder = list.querySelector('.no-matches');
             if (placeholder) placeholder.remove();
 
             const div = document.createElement('div');
             div.className = 'clip-item';
             div.innerHTML = `
-                <div class="clip-timestamp">${formatTime(clip.timestamp)}</div>
-                <div class="clip-content">
+                <div class="clip-top-row">
+                    <div class="clip-timestamp">${formatTime(clip.timestamp)}</div>
                     <div class="clip-text">${highlightPhrase(clip.text, phrase)}</div>
-                    <div class="clip-context">${highlightPhrase(clip.context, phrase)}</div>
-                    <div class="clip-actions">
-                        <a class="btn-watch" href="${clip.youtube_url}" target="_blank">Watch on YouTube</a>
-                        <button class="btn-embed" onclick="toggleEmbed(${index}, '${clip.embed_url}')">Preview</button>
-                    </div>
-                    <div class="embed-container" id="embed-${index}"></div>
                 </div>
+                <div class="clip-context">${highlightPhrase(clip.context, phrase)}</div>
+                <div class="clip-actions">
+                    <a class="btn-watch" href="${clip.youtube_url}" target="_blank">YouTube</a>
+                    <button class="btn-embed" onclick="toggleEmbed(${index}, '${clip.embed_url}')">Preview</button>
+                    <button class="btn-extract" id="extract-btn-${index}" onclick="extractClip(${index}, '${clip.clip_extract_url}')">Extract</button>
+                </div>
+                <div class="embed-container" id="embed-${index}"></div>
             `;
             list.appendChild(div);
         }
 
-        function findClips() {
-            const url = document.getElementById('urlInput').value.trim();
-            const phrase = document.getElementById('phraseInput').value.trim();
+        function runCommand() {
+            const input = document.getElementById('cmdInput').value.trim();
+            if (!input) return;
 
-            if (!url || !phrase) {
-                alert('Enter both a YouTube URL and a search phrase');
+            const parsed = parseCommand(input);
+            if (!parsed) {
+                alert('Could not parse command. Try:\n\n' +
+                    '  tempo request "http://localhost:3000/api/find?url=YOUTUBE_URL&phrase=PHRASE"\n' +
+                    '  https://youtube.com/watch?v=... search phrase');
                 return;
             }
 
+            const { url, phrase } = parsed;
+
+            const privateKey = document.getElementById('privateKey').value.trim();
+            if (!privateKey) {
+                alert('Enter your Tempo private key to pay for clips');
+                return;
+            }
+
+            // Reset transaction log
+            txCount = 0;
+            totalSpent = 0;
+            document.getElementById('totalCost').textContent = '$0.00';
+            document.getElementById('txLogBody').innerHTML = '';
+            document.getElementById('txLogTitle').textContent = 'Transactions (0)';
+            document.getElementById('txLog').classList.remove('show');
+
+            addTransaction('REQUEST', `GET /api/find?url=${url}&phrase=${phrase}`, '--');
+
             const btn = document.getElementById('searchBtn');
             btn.disabled = true;
-            btn.textContent = 'Searching...';
+            btn.textContent = '...';
 
-            // Reset results
             document.getElementById('results').classList.remove('show');
             document.getElementById('clipList').innerHTML = '';
             document.getElementById('resultsCount').textContent = '';
@@ -393,73 +550,112 @@
 
             showStatus('Connecting...');
 
-            const streamUrl = `${API_BASE}/api/find/stream?url=${encodeURIComponent(url)}&phrase=${encodeURIComponent(phrase)}`;
-            const es = new EventSource(streamUrl);
-
-            es.addEventListener('status', (e) => {
-                const data = JSON.parse(e.data);
-                const stepLabels = {
-                    download: 'Downloading audio',
-                    transcribe: 'Transcribing',
-                    search: 'Searching',
-                };
-                const label = stepLabels[data.step] || data.step;
-                showStatus(`${label}: ${data.message}`);
-            });
-
-            es.addEventListener('clip', (e) => {
-                const clip = JSON.parse(e.data);
-                // Show results container on first clip
-                const results = document.getElementById('results');
-                if (!results.classList.contains('show')) {
+            ClipDrop.findClips(privateKey, url, phrase, {
+                onStatus(step, message) {
+                    const stepLabels = { download: 'Downloading audio', transcribe: 'Transcribing', search: 'Searching' };
+                    const label = stepLabels[step] || step;
+                    showStatus(`${label}: ${message}`);
+                },
+                onClip(clip) {
+                    const results = document.getElementById('results');
+                    if (!results.classList.contains('show')) {
+                        document.getElementById('resultsTitle').textContent = `"${phrase}" in video`;
+                        results.classList.add('show');
+                    }
+                    const idx = clipIndex++;
+                    appendClip(clip, idx, phrase);
+                    document.getElementById('resultsCount').textContent =
+                        `${clipIndex} moment${clipIndex !== 1 ? 's' : ''} found so far...`;
+                    updateCost(0.02);
+                    addTransaction('CLIP', `${formatTime(clip.timestamp)} — "${clip.text.substring(0, 40)}..."`, '-$0.02');
+                    extractClip(idx, clip.clip_extract_url);
+                },
+                onDone(data) {
+                    hideStatus();
+                    btn.disabled = false;
+                    btn.textContent = 'Run';
+                    const clipCost = data.clips_found * 0.02;
                     document.getElementById('resultsTitle').textContent = `"${phrase}" in video`;
-                    results.classList.add('show');
-                }
-                appendClip(clip, clipIndex++, phrase);
-                // Update running count
-                document.getElementById('resultsCount').textContent =
-                    `${clipIndex} moment${clipIndex !== 1 ? 's' : ''} found so far...`;
-                updateCost(0.02);
-            });
-
-            es.addEventListener('done', (e) => {
-                const data = JSON.parse(e.data);
-                es.close();
-
-                hideStatus();
+                    document.getElementById('resultsCount').textContent =
+                        `${data.clips_found} moment${data.clips_found !== 1 ? 's' : ''} found across ${data.total_segments} segments`;
+                    document.getElementById('resultsCost').textContent =
+                        `${data.clips_found} clips × $0.02 = $${clipCost.toFixed(2)}, settled in 1 tx`;
+                    document.getElementById('results').classList.add('show');
+                    addTransaction('DONE', `${data.clips_found} clips, total $${clipCost.toFixed(2)}`, `-$${clipCost.toFixed(2)}`);
+                    if (data.clips_found === 0) {
+                        document.getElementById('clipList').innerHTML =
+                            '<div class="no-matches" style="text-align:center;padding:24px;color:#71717a;">No matches found for that phrase in this video.</div>';
+                    }
+                },
+                onError(error) {
+                    hideStatus();
+                    btn.disabled = false;
+                    btn.textContent = 'Run';
+                    addTransaction('ERROR', error, '--');
+                    alert('Error: ' + error);
+                },
+                onPayment(info) {
+                    if (info.type === 'channel_open') {
+                        addTransaction('CHANNEL', `Opened ${info.channelId?.substring(0, 10)}...`, '--');
+                    } else if (info.type === 'receipt') {
+                        if (info.cumulative && info.cumulative !== '0') {
+                            const spent = parseFloat(info.cumulative) / 1e6;
+                            totalSpent = spent;
+                            const el = document.getElementById('totalCost');
+                            el.textContent = '$' + spent.toFixed(2);
+                            el.classList.remove('payment-flash');
+                            void el.offsetWidth;
+                            el.classList.add('payment-flash');
+                            addTransaction('RECEIPT', `Session total: $${spent.toFixed(2)}`, `-$${spent.toFixed(2)}`);
+                        }
+                        if (info.txHash) {
+                            addTransaction('TX', `${info.txHash.substring(0, 14)}...`, info.cumulative);
+                        }
+                    } else if (info.type === 'close') {
+                        const txInfo = info.txHash ? info.txHash.substring(0, 14) + '...' : 'no tx';
+                        addTransaction('CLOSE', `Channel closed (${txInfo})`, '--');
+                    }
+                },
+            }).then(() => {
                 btn.disabled = false;
-                btn.textContent = 'Find Clips';
-
-                const clipCost = data.clips_found * 0.02;
-                document.getElementById('resultsTitle').textContent = `"${phrase}" in video`;
-                document.getElementById('resultsCount').textContent =
-                    `${data.clips_found} moment${data.clips_found !== 1 ? 's' : ''} found across ${data.total_segments} segments`;
-                document.getElementById('resultsCost').textContent =
-                    `${data.clips_found} clips x $0.02 = $${clipCost.toFixed(2)}`;
-
-                const results = document.getElementById('results');
-                results.classList.add('show');
-
-                if (data.clips_found === 0) {
-                    document.getElementById('clipList').innerHTML =
-                        '<div class="no-matches" style="text-align:center;padding:24px;color:#71717a;">No matches found for that phrase in this video.</div>';
-                }
-            });
-
-            es.addEventListener('error', (e) => {
-                es.close();
-                hideStatus();
-                btn.disabled = false;
-                btn.textContent = 'Find Clips';
-                try {
-                    const data = JSON.parse(e.data);
-                    alert('Error: ' + data.error);
-                } catch (_) {
-                    alert('Failed to connect to ClipDrop API. Make sure api_clips.py is running.');
-                }
+                btn.textContent = 'Run';
             });
         }
-        
+
+        async function extractClip(index, extractUrl) {
+            const btn = document.getElementById(`extract-btn-${index}`);
+            btn.disabled = true;
+            btn.textContent = 'Extracting...';
+
+            try {
+                const res = await fetch(API_BASE + extractUrl);
+                const data = await res.json();
+
+                if (data.error) {
+                    btn.disabled = false;
+                    btn.textContent = 'Extract Clip';
+                    return;
+                }
+
+                const container = document.getElementById(`embed-${index}`);
+                container.innerHTML = `
+                    <video controls style="width:100%;border-radius:8px;margin-top:8px;">
+                        <source src="${API_BASE}${data.clip_url}" type="video/mp4">
+                    </video>
+                    <a href="${API_BASE}${data.clip_url}" download
+                       style="display:inline-block;margin-top:8px;color:#bf94ff;font-size:13px;text-decoration:none;">
+                        Download .mp4
+                    </a>
+                `;
+                container.classList.add('show');
+                btn.textContent = 'Extracted';
+                addTransaction('EXTRACT', `Clip #${index + 1} ready`, '$0.00');
+            } catch (err) {
+                btn.disabled = false;
+                btn.textContent = 'Extract Clip';
+            }
+        }
+
         function toggleEmbed(index, embedUrl) {
             const container = document.getElementById(`embed-${index}`);
             if (container.classList.contains('show')) {
@@ -470,10 +666,130 @@
                 container.classList.add('show');
             }
         }
-        
-        // Enter key support
+
+        function runFromFields() {
+            const url = document.getElementById('urlInput').value.trim();
+            const phrase = document.getElementById('phraseInput').value.trim();
+            if (!url || !phrase) {
+                alert('Enter both a YouTube URL and a search phrase');
+                return;
+            }
+            document.getElementById('cmdInput').value =
+                `tempo request "http://localhost:3000/api/find?url=${url}&phrase=${phrase}"`;
+            runCommand();
+        }
+
+        // ── Passive mode: listen for broadcasts from /api/events ──────────────
+        let passiveClipIndex = 0;
+
+        function connectEvents() {
+            const es = new EventSource('/api/events');
+
+            es.onmessage = function(e) {
+                let msg;
+                try { msg = JSON.parse(e.data); } catch { return; }
+
+                if (msg.type === 'status' && msg.url && msg.phrase) {
+                    // A new search started from the CLI — reset the UI
+                    passiveClipIndex = 0;
+                    currentPhrase = msg.phrase;
+                    totalSpent = 0;
+                    txCount = 0;
+                    document.getElementById('totalCost').textContent = '$0.00';
+                    document.getElementById('txLogBody').innerHTML = '';
+                    document.getElementById('txLogTitle').textContent = 'Transactions (0)';
+                    document.getElementById('txLog').classList.remove('show');
+                    document.getElementById('clipList').innerHTML = '';
+                    document.getElementById('resultsCount').textContent = '';
+                    document.getElementById('resultsCost').textContent = '';
+                    document.getElementById('results').classList.remove('show');
+                    // Update the command input to reflect what's being searched
+                    document.getElementById('cmdInput').value =
+                        `tempo request "http://localhost:3000/api/find?url=${msg.url}&phrase=${msg.phrase}"`;
+                    showStatus('Searching for "' + msg.phrase + '"...');
+                } else if (msg.type === 'status') {
+                    const stepLabels = { download: 'Downloading audio', transcribe: 'Transcribing', search: 'Searching' };
+                    const label = stepLabels[msg.step] || msg.step || 'Working';
+                    showStatus(label + ': ' + (msg.message || ''));
+                } else if (msg.type === 'clip') {
+                    const results = document.getElementById('results');
+                    if (!results.classList.contains('show')) {
+                        document.getElementById('resultsTitle').textContent = '"' + currentPhrase + '" in video';
+                        results.classList.add('show');
+                    }
+                    const idx = passiveClipIndex++;
+                    appendClip(msg, idx, currentPhrase);
+                    document.getElementById('resultsCount').textContent =
+                        passiveClipIndex + ' moment' + (passiveClipIndex !== 1 ? 's' : '') + ' found so far...';
+                    updateCost(0.02);
+                    addTransaction('CLIP', formatTime(msg.timestamp) + ' \u2014 "' + (msg.text || '').substring(0, 40) + '..."', '-$0.02');
+                    extractClip(idx, msg.clip_extract_url);
+                } else if (msg.type === 'done') {
+                    hideStatus();
+                    const n = msg.clips_found || passiveClipIndex;
+                    const clipCost = n * 0.02;
+                    const costStr = msg.total_cost || clipCost.toFixed(2);
+                    document.getElementById('resultsTitle').textContent = '"' + currentPhrase + '" in video';
+                    document.getElementById('resultsCount').textContent =
+                        n + ' moment' + (n !== 1 ? 's' : '') + ' found across ' + (msg.total_segments || '?') + ' segments';
+                    const costEl = document.getElementById('resultsCost');
+                    if (msg.tx_hash) {
+                        const hash = msg.tx_hash;
+                        const shortHash = hash.substring(0, 10) + '...' + hash.substring(hash.length - 6);
+                        costEl.innerHTML = n + ' clips &times; $0.02 = $' + costStr +
+                            ' &mdash; <a href="https://explorer.tempo.xyz/tx/' + hash + '" target="_blank" style="color:#00ff88;text-decoration:underline;">tx: ' + shortHash + '</a>';
+                        addTransaction('SETTLED', shortHash, '-$' + costStr);
+                    } else {
+                        costEl.textContent = n + ' clips \u00d7 $0.02 = $' + costStr;
+                    }
+                    document.getElementById('results').classList.add('show');
+                    if (n === 0) {
+                        document.getElementById('clipList').innerHTML =
+                            '<div class="no-matches" style="text-align:center;padding:24px;color:#71717a;">No matches found for that phrase in this video.</div>';
+                    }
+                } else if (msg.type === 'settlement') {
+                    const hash = msg.txHash || '';
+                    const shortHash = hash.substring(0, 10) + '...' + hash.substring(hash.length - 6);
+                    const amount = msg.amount ? ('$' + (parseFloat(msg.amount) / 1e6).toFixed(2)) : '';
+                    addTransaction('SETTLED', shortHash, amount);
+                    // Show tx hash prominently
+                    const costEl = document.getElementById('resultsCost');
+                    if (costEl) {
+                        costEl.innerHTML = costEl.textContent + ' &mdash; <a href="https://explorer.tempo.xyz/tx/' + hash + '" target="_blank" style="color:#00ff88;text-decoration:underline;">' + shortHash + '</a>';
+                    }
+                } else if (msg.type === 'error') {
+                    hideStatus();
+                    addTransaction('ERROR', msg.error || 'Unknown error', '--');
+                }
+            };
+
+            es.onerror = function() {
+                es.close();
+                setTimeout(connectEvents, 2000);
+            };
+        }
+
+        connectEvents();
+
+        // Auto-fill local wallet key
+        fetch('/api/local-key').then(r => r.json()).then(d => {
+            if (d.key) {
+                document.getElementById('privateKey').value = d.key;
+                document.getElementById('privateKey').style.display = 'none';
+                // Show truncated address
+                const addr = d.address || d.key.slice(0, 6) + '...' + d.key.slice(-4);
+                const badge = document.getElementById('walletBadge');
+                badge.textContent = '● ' + addr;
+                badge.style.display = 'inline-block';
+            }
+        }).catch(() => {});
+
+        // Enter key
+        document.getElementById('cmdInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') runCommand();
+        });
         document.getElementById('phraseInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') findClips();
+            if (e.key === 'Enter') runFromFields();
         });
     </script>
 </body>
